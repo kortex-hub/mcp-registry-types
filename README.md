@@ -152,16 +152,16 @@ function processServer(server: Server) {
   
   // Work with packages (different installation methods)
   server.packages?.forEach((pkg: Package) => {
-    if (pkg.type === 'npm') {
-      console.log(`NPM package: ${pkg.name}`);
-    } else if (pkg.type === 'pip') {
-      console.log(`Python package: ${pkg.name}`);
+    if (pkg.registryType === 'npm') {
+      console.log(`NPM package: ${pkg.identifier}`);
+    } else if (pkg.registryType === 'pypi') {
+      console.log(`Python package: ${pkg.identifier}`);
     }
   });
   
   // Work with remote configurations
   server.remotes?.forEach((remote: Remote) => {
-    console.log(`Remote: ${remote.name} -> ${remote.url}`);
+    console.log(`Remote: ${remote.type} -> ${remote.url}`);
   });
 }
 ```
