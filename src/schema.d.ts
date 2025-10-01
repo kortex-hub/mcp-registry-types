@@ -18,7 +18,10 @@ export type paths = {
         get: {
             parameters: {
                 query?: {
-                    /** @description Pagination cursor for retrieving next set of results */
+                    /** @description Pagination cursor for retrieving next set of results.
+                     *
+                     *     Cursors are opaque strings returned in the `metadata.nextCursor` field of paginated responses. Always use the exact cursor value returned by the API.
+                     *      */
                     cursor?: string;
                     /** @description Maximum number of items to return */
                     limit?: number;
@@ -48,7 +51,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/v0/servers/{server_id}": {
+    "/v0/servers/{serverName}": {
         parameters: {
             query?: never;
             header?: never;
@@ -57,18 +60,15 @@ export type paths = {
         };
         /**
          * Get MCP server details
-         * @description Returns detailed information about a specific MCP server. Returns latest version by default, or specific version if version query parameter is provided.
+         * @description Returns detailed information about the latest version of a specific MCP server.
          */
         get: {
             parameters: {
-                query?: {
-                    /** @description Specific version to retrieve (e.g., "1.0.0"). If not provided, returns latest version. */
-                    version?: string;
-                };
+                query?: never;
                 header?: never;
                 path: {
-                    /** @description Unique server ID (consistent across all versions) */
-                    server_id: string;
+                    /** @description URL-encoded server name (e.g., "com.example%2Fmy-server") */
+                    serverName: string;
                 };
                 cookie?: never;
             };
@@ -80,7 +80,7 @@ export type paths = {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ServerDetail"];
+                        "application/json": components["schemas"]["ServerResponse"];
                     };
                 };
                 /** @description Server not found */
@@ -105,7 +105,7 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
-    "/v0/servers/{server_id}/versions": {
+    "/v0/servers/{serverName}/versions": {
         parameters: {
             query?: never;
             header?: never;
@@ -121,8 +121,8 @@ export type paths = {
                 query?: never;
                 header?: never;
                 path: {
-                    /** @description Unique server ID (consistent across all versions) */
-                    server_id: string;
+                    /** @description URL-encoded server name (e.g., "com.example%2Fmy-server") */
+                    serverName: string;
                 };
                 cookie?: never;
             };
@@ -138,6 +138,62 @@ export type paths = {
                     };
                 };
                 /** @description Server not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example Server not found */
+                            error?: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v0/servers/{serverName}/versions/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get specific MCP server version
+         * @description Returns detailed information about a specific version of an MCP server.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description URL-encoded server name (e.g., "com.example%2Fmy-server") */
+                    serverName: string;
+                    /** @description URL-encoded version to retrieve (e.g., "1.0.0" or "1.0.0%2B20130313144700" for versions with build metadata) */
+                    version: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Detailed server information */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServerResponse"];
+                    };
+                };
+                /** @description Server or version not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -196,7 +252,7 @@ export type paths = {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ServerDetail"];
+                        "application/json": components["schemas"]["ServerResponse"];
                     };
                 };
                 /** @description Unauthorized - Invalid or missing authentication token */
@@ -274,13 +330,6 @@ export type components = {
              * @example Node.js server implementing Model Context Protocol (MCP) for filesystem operations.
              */
             description: string;
-            /**
-             * @description Server lifecycle status. 'deprecated' indicates the server is no longer recommended for new usage.
-             * @default active
-             * @example active
-             * @enum {string}
-             */
-            status: "active" | "deprecated";
             repository?: components["schemas"]["Repository"];
             /**
              * @description Version string for this server. SHOULD follow semantic versioning (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of Implementation.version in MCP specification.
@@ -295,10 +344,12 @@ export type components = {
             websiteUrl?: string;
         };
         ServerList: {
-            servers: components["schemas"]["ServerDetail"][];
+            servers: components["schemas"]["ServerResponse"][];
             metadata?: {
-                /** @description Cursor for next page of results */
-                next_cursor?: string;
+                /** @description Pagination cursor for retrieving the next page of results.
+                 *     Use this exact value in the `cursor` query parameter of your next request. If null or empty, there are no more results.
+                 *      */
+                nextCursor?: string;
                 /**
                  * @description Number of items in current page
                  * @example 30
@@ -315,7 +366,7 @@ export type components = {
              * @example nuget
              * @example mcpb
              */
-            registryType?: string;
+            registryType: string;
             /**
              * Format: uri
              * @description Base URL of the package registry
@@ -332,12 +383,12 @@ export type components = {
              * @example @modelcontextprotocol/server-brave-search
              * @example https://github.com/example/releases/download/v1.0.0/package.mcpb
              */
-            identifier?: string;
+            identifier: string;
             /**
              * @description Package version
              * @example 1.0.2
              */
-            version?: string;
+            version: string;
             /**
              * @description SHA-256 hash of the package file for integrity verification.
              * @example fe333e598595000ae021bd27117db32ec69af6987f507ba7a63c90638ff633ce
@@ -460,7 +511,7 @@ export type components = {
             /**
              * Format: uri
              * @description JSON Schema URI for this server.json format
-             * @example https://static.modelcontextprotocol.io/schemas/2025-09-16/server.schema.json
+             * @example https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json
              */
             $schema?: string;
             packages?: components["schemas"]["Package"][];
@@ -472,47 +523,48 @@ export type components = {
                  * @example {
                  *       "tool": "publisher-cli",
                  *       "version": "1.2.3",
-                 *       "build_info": {
+                 *       "buildInfo": {
                  *         "commit": "abc123def456",
                  *         "timestamp": "2023-12-01T10:30:00Z",
-                 *         "pipeline_id": "build-789"
+                 *         "pipelineId": "build-789"
                  *       }
                  *     }
                  */
                 "io.modelcontextprotocol.registry/publisher-provided"?: {
                     [key: string]: unknown;
                 };
-                /** @description Registry-specific metadata managed by the MCP registry system */
+            };
+        };
+        /** @description API response format with separated server data and registry metadata */
+        ServerResponse: {
+            server: components["schemas"]["ServerDetail"];
+            /** @description Registry-managed metadata */
+            _meta: {
+                /** @description Official MCP registry metadata */
                 "io.modelcontextprotocol.registry/official"?: {
                     /**
-                     * Format: uuid
-                     * @description Consistent ID across all versions of a server
-                     * @example 550e8400-e29b-41d4-a716-446655440000
+                     * @description Server lifecycle status
+                     * @example active
+                     * @enum {string}
                      */
-                    serverId: string;
-                    /**
-                     * Format: uuid
-                     * @description Unique ID for this specific version
-                     * @example 773f9b2e-1a47-4c8d-b5e6-2f8d9c4a7b3e
-                     */
-                    versionId: string;
+                    status?: "active" | "deprecated" | "deleted";
                     /**
                      * Format: date-time
                      * @description Timestamp when the server was first published to the registry
                      * @example 2023-12-01T10:30:00Z
                      */
-                    publishedAt: string;
+                    publishedAt?: string;
                     /**
                      * Format: date-time
                      * @description Timestamp when the server entry was last updated
                      * @example 2023-12-01T11:00:00Z
                      */
-                    updatedAt: string;
+                    updatedAt?: string;
                     /**
                      * @description Whether this is the latest version of the server
                      * @example true
                      */
-                    isLatest: boolean;
+                    isLatest?: boolean;
                 };
             } & {
                 [key: string]: unknown;

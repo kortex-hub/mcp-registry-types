@@ -1,6 +1,6 @@
 {
   "name": "@kortex-hub/mcp-registry-types",
-  "version": "1.2.0-next",
+  "version": "1.2.3-next",
   "description": "TypeScript types for the Model Context Protocol (MCP) Registry API",
   "repository": "https://github.com/kortex-hub/mcp-registry-types",
   "publishConfig": {
@@ -13,7 +13,7 @@
     "src"
   ],
   "scripts": {
-    "generate": "npx openapi-typescript https://raw.githubusercontent.com/modelcontextprotocol/registry/refs/tags/v1.1.0/docs/reference/api/openapi.yaml -o src/schema.d.ts --export-type"
+    "generate": "npx openapi-typescript https://raw.githubusercontent.com/modelcontextprotocol/registry/refs/tags/v1.2.3/docs/reference/api/openapi.yaml -o src/schema.d.ts --export-type"
   },
   "devDependencies": {
     "openapi-typescript": "^7.8.0"
