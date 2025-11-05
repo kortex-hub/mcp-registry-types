@@ -16,15 +16,16 @@
       "default": "./src/index.d.ts" 
     },
     "./openapi.yaml": {
-      "default": "./src/openapi.yaml"
+      "default": "./openapi.yaml"
     }
   },
   "scripts": {
     "fetch": "ts-node src/fetchSchema.ts",
-    "generate": "npx openapi-typescript https://raw.githubusercontent.com/modelcontextprotocol/registry/refs/tags/v1.2.3/docs/reference/api/openapi.yaml -o src/schema.d.ts --export-type"
+    "generate:schema": "npx openapi-typescript openapi.yaml -o src/schema.d.ts --export-type",
+    "generate": "pnpm run fetch && pnpm run generate:schema"
   },
   "devDependencies": {
-    "@types/node": "^22",
+    "@types/node": "^24",
     "openapi-typescript": "^7.8.0",
     "ts-node": "^10.9.2"
   },
