@@ -1,6 +1,6 @@
 {
   "name": "@kortex-hub/mcp-registry-types",
-  "version": "1.3.0-next",
+  "version": "1.3.0",
   "description": "TypeScript types for the Model Context Protocol (MCP) Registry API",
   "repository": "https://github.com/kortex-hub/mcp-registry-types",
   "publishConfig": {
