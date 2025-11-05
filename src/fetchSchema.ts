@@ -18,7 +18,7 @@
 
 import { writeFile } from "fs/promises";
 
-export const FILENAME = 'src/openapi.yaml';
+export const FILENAME = 'openapi.yaml';
 
 async function fetchOpenAPISchema() {
     const url = 'https://raw.githubusercontent.com/modelcontextprotocol/registry/refs/tags/v1.2.3/docs/reference/api/openapi.yaml';
