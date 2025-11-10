@@ -18,13 +18,20 @@ export type paths = {
         get: {
             parameters: {
                 query?: {
-                    /** @description Pagination cursor for retrieving next set of results.
+                    /**
+                     * @description Pagination cursor for retrieving next set of results.
                      *
                      *     Cursors are opaque strings returned in the `metadata.nextCursor` field of paginated responses. Always use the exact cursor value returned by the API.
-                     *      */
+                     */
                     cursor?: string;
                     /** @description Maximum number of items to return */
                     limit?: number;
+                    /** @description Search servers by name (substring match) */
+                    search?: string;
+                    /** @description Filter servers updated since timestamp (RFC3339 datetime) */
+                    updated_since?: string;
+                    /** @description Filter by version ('latest' for latest version, or an exact version like '1.2.3') */
+                    version?: string;
                 };
                 header?: never;
                 path?: never;
@@ -39,60 +46,6 @@ export type paths = {
                     };
                     content: {
                         "application/json": components["schemas"]["ServerList"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v0/servers/{serverName}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get MCP server details
-         * @description Returns detailed information about the latest version of a specific MCP server.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description URL-encoded server name (e.g., "com.example%2Fmy-server") */
-                    serverName: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Detailed server information */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ServerResponse"];
-                    };
-                };
-                /** @description Server not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @example Server not found */
-                            error?: string;
-                        };
                     };
                 };
             };
@@ -168,7 +121,7 @@ export type paths = {
         };
         /**
          * Get specific MCP server version
-         * @description Returns detailed information about a specific version of an MCP server.
+         * @description Returns detailed information about a specific version of an MCP server. Use the special version `latest` to get the latest version.
          */
         get: {
             parameters: {
@@ -231,7 +184,6 @@ export type paths = {
          *     **Note**: This endpoint is optional for registry implementations. Read-only registries may not provide this functionality.
          *
          *     Authentication mechanism is registry-specific and may vary between implementations.
-         *
          */
         post: {
             parameters: {
@@ -303,52 +255,37 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        /** @description Repository metadata for the MCP server source code. Enables users and security experts to inspect the code, improving transparency. */
         Repository: {
             /**
              * Format: uri
+             * @description Repository URL for browsing source code. Should support both web browsing and git clone operations.
              * @example https://github.com/modelcontextprotocol/servers
              */
             url: string;
-            /** @example github */
-            source: string;
-            /** @example b94b5f7e-c7c6-d760-2c78-a5e9b8a5b8c9 */
-            id: string;
             /**
-             * @description Optional relative path from repository root to the server location within a monorepo structure
+             * @description Repository hosting service identifier. Used by registries to determine validation and API access methods.
+             * @example github
+             */
+            source: string;
+            /**
+             * @description Repository identifier from the hosting service (e.g., GitHub repo ID). Owned and determined by the source forge. Should remain stable across repository renames and may be used to detect repository resurrection attacks - if a repository is deleted and recreated, the ID should change. For GitHub, use: gh api repos/<owner>/<repo> --jq '.id'
+             * @example b94b5f7e-c7c6-d760-2c78-a5e9b8a5b8c9
+             */
+            id?: string;
+            /**
+             * @description Optional relative path from repository root to the server location within a monorepo or nested package structure. Must be a clean relative path.
              * @example src/everything
              */
             subfolder?: string;
         };
-        Server: {
-            /**
-             * @description Reverse DNS name of the MCP server
-             * @example io.github.modelcontextprotocol/filesystem
-             */
-            name: string;
-            /**
-             * @description Human-readable description of the server's functionality
-             * @example Node.js server implementing Model Context Protocol (MCP) for filesystem operations.
-             */
-            description: string;
-            repository?: components["schemas"]["Repository"];
-            /**
-             * @description Version string for this server. SHOULD follow semantic versioning (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of Implementation.version in MCP specification.
-             * @example 1.0.2
-             */
-            version: string;
-            /**
-             * Format: uri
-             * @description Optional URL to the server's homepage, documentation, or project website. This provides a central link for users to learn more about the server. Particularly useful when the server has custom installation instructions or setup requirements.
-             * @example https://modelcontextprotocol.io/examples
-             */
-            websiteUrl?: string;
-        };
         ServerList: {
             servers: components["schemas"]["ServerResponse"][];
             metadata?: {
-                /** @description Pagination cursor for retrieving the next page of results.
+                /**
+                 * @description Pagination cursor for retrieving the next page of results.
                  *     Use this exact value in the `cursor` query parameter of your next request. If null or empty, there are no more results.
-                 *      */
+                 */
                 nextCursor?: string;
                 /**
                  * @description Number of items in current page
@@ -385,12 +322,12 @@ export type components = {
              */
             identifier: string;
             /**
-             * @description Package version
+             * @description Package version. Must be a specific version. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '>=1.2.3', '1.x', '1.*').
              * @example 1.0.2
              */
-            version: string;
+            version?: string;
             /**
-             * @description SHA-256 hash of the package file for integrity verification.
+             * @description SHA-256 hash of the package file for integrity verification. Required for MCPB packages and optional for other package types. Authors are responsible for generating correct SHA-256 hashes when creating server.json. If present, MCP clients must validate the downloaded file matches the hash before running packages to ensure file integrity.
              * @example fe333e598595000ae021bd27117db32ec69af6987f507ba7a63c90638ff633ce
              */
             fileSha256?: string;
@@ -398,9 +335,12 @@ export type components = {
              * @description A hint to help clients determine the appropriate runtime for the package. This field should be provided when `runtimeArguments` are present.
              * @example npx
              * @example uvx
+             * @example docker
              * @example dnx
              */
             runtimeHint?: string;
+            /** @description Transport protocol configuration for the package */
+            transport: components["schemas"]["StdioTransport"] | components["schemas"]["StreamableHttpTransport"] | components["schemas"]["SseTransport"];
             /** @description A list of arguments to be passed to the package's runtime command (such as docker or npx). The `runtimeHint` field should be provided when `runtimeArguments` are present. */
             runtimeArguments?: components["schemas"]["Argument"][];
             /** @description A list of arguments to be passed to the package's binary. */
@@ -417,23 +357,25 @@ export type components = {
              * @description Specifies the input format. Supported values include `filepath`, which should be interpreted as a file on the user's filesystem.
              *
              *     When the input is converted to a string, booleans should be represented by the strings "true" and "false", and numbers should be represented as decimal values.
-             *
              * @default string
              * @enum {string}
              */
             format: "string" | "number" | "boolean" | "filepath";
-            /** @description The default value for the input. If this is not set, the user may be prompted to provide a value. If a value is set, it should not be configurable by end users.
+            /**
+             * @description The value for the input. If this is not set, the user may be prompted to provide a value. If a value is set, it should not be configurable by end users.
              *
              *     Identifiers wrapped in `{curly_braces}` will be replaced with the corresponding properties from the input `variables` map. If an identifier in braces is not found in `variables`, or if `variables` is not provided, the `{curly_braces}` substring should remain unchanged.
-             *      */
+             */
             value?: string;
             /**
              * @description Indicates whether the input is a secret value (e.g., password, token). If true, clients should handle the value securely.
              * @default false
              */
             isSecret: boolean;
-            /** @description The default value for the input. */
+            /** @description The default value for the input.  This should be a valid value for the input.  If you want to provide input examples or guidance, use the `placeholder` field instead. */
             default?: string;
+            /** @description A placeholder for the input to be displaying during configuration. This is used to provide examples or guidance about the expected form or content of the input. */
+            placeholder?: string;
             /**
              * @description A list of possible values for the input. If provided, the user must select one of these values.
              * @example []
@@ -454,7 +396,7 @@ export type components = {
              */
             type: "positional";
             /**
-             * @description An identifier-like hint for the value. This is not part of the command line, but can be used by client configuration and to provide hints to users.
+             * @description An identifier for the positional argument. It is not part of the command line. It may be used by client configuration as a label identifying the argument. It is also used to identify the value in transport URL variable substitution.
              * @example file_path
              */
             valueHint?: string;
@@ -489,37 +431,122 @@ export type components = {
              */
             name: string;
         };
+        /** @description Warning: Arguments construct command-line parameters that may contain user-provided input. This creates potential command injection risks if clients execute commands in a shell environment. For example, a malicious argument value like ';rm -rf ~/Development' could execute dangerous commands. Clients should prefer non-shell execution methods (e.g., posix_spawn) when possible to eliminate injection risks entirely. Where not possible, clients should obtain consent from users or agents to run the resolved command before execution. */
         Argument: components["schemas"]["PositionalArgument"] | components["schemas"]["NamedArgument"];
-        Remote: {
+        StdioTransport: {
             /**
-             * @description Transport protocol type
+             * @description Transport type
+             * @example stdio
+             * @enum {string}
+             */
+            type: "stdio";
+        };
+        StreamableHttpTransport: {
+            /**
+             * @description Transport type
+             * @example streamable-http
+             * @enum {string}
+             */
+            type: "streamable-http";
+            /**
+             * @description URL template for the streamable-http transport. Variables in {curly_braces} reference argument valueHints, argument names, or environment variable names. After variable substitution, this should produce a valid URI.
+             * @example https://api.example.com/mcp
+             */
+            url: string;
+            /** @description HTTP headers to include */
+            headers?: components["schemas"]["KeyValueInput"][];
+        };
+        SseTransport: {
+            /**
+             * @description Transport type
              * @example sse
              * @enum {string}
              */
-            type: "streamable-http" | "sse";
+            type: "sse";
             /**
              * Format: uri
-             * @description Remote server URL
+             * @description Server-Sent Events endpoint URL
              * @example https://mcp-fs.example.com/sse
              */
             url: string;
             /** @description HTTP headers to include */
             headers?: components["schemas"]["KeyValueInput"][];
         };
+        /** @description An optionally-sized icon that can be displayed in a user interface. */
+        Icon: {
+            /**
+             * Format: uri
+             * @description A standard URI pointing to an icon resource. Must be an HTTPS URL. Consumers SHOULD take steps to ensure URLs serving icons are from the same domain as the server or a trusted domain. Consumers SHOULD take appropriate precautions when consuming SVGs as they can contain executable JavaScript.
+             * @example https://example.com/icon.png
+             */
+            src: string;
+            /**
+             * @description Optional MIME type override if the source MIME type is missing or generic. Must be one of: image/png, image/jpeg, image/jpg, image/svg+xml, image/webp.
+             * @example image/png
+             * @enum {string}
+             */
+            mimeType?: "image/png" | "image/jpeg" | "image/jpg" | "image/svg+xml" | "image/webp";
+            /**
+             * @description Optional array of strings that specify sizes at which the icon can be used. Each string should be in WxH format (e.g., '48x48', '96x96') or 'any' for scalable formats like SVG. If not provided, the client should assume that the icon can be used at any size.
+             * @example [
+             *       "48x48",
+             *       "96x96"
+             *     ]
+             * @example [
+             *       "any"
+             *     ]
+             */
+            sizes?: string[];
+            /**
+             * @description Optional specifier for the theme this icon is designed for. 'light' indicates the icon is designed to be used with a light background, and 'dark' indicates the icon is designed to be used with a dark background. If not provided, the client should assume the icon can be used with any theme.
+             * @enum {string}
+             */
+            theme?: "light" | "dark";
+        };
         /** @description Schema for a static representation of an MCP server. Used in various contexts related to discovery, installation, and configuration. */
-        ServerDetail: components["schemas"]["Server"] & {
+        ServerDetail: {
+            /**
+             * @description Server name in reverse-DNS format. Must contain exactly one forward slash separating namespace from server name.
+             * @example io.github.user/weather
+             */
+            name: string;
+            /**
+             * @description Clear human-readable explanation of server functionality. Should focus on capabilities, not implementation details.
+             * @example MCP server providing weather data and forecasts via OpenWeatherMap API
+             */
+            description: string;
+            /**
+             * @description Optional human-readable title or display name for the MCP server. MCP subregistries or clients MAY choose to use this for display purposes.
+             * @example Weather API
+             */
+            title?: string;
+            /** @description Optional repository metadata for the MCP server source code. Recommended for transparency and security inspection. */
+            repository?: components["schemas"]["Repository"];
+            /**
+             * @description Version string for this server. SHOULD follow semantic versioning (e.g., '1.0.2', '2.1.0-alpha'). Equivalent of Implementation.version in MCP specification. Non-semantic versions are allowed but may not sort predictably. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '>=1.2.3', '1.x', '1.*').
+             * @example 1.0.2
+             */
+            version: string;
+            /**
+             * Format: uri
+             * @description Optional URL to the server's homepage, documentation, or project website. This provides a central link for users to learn more about the server. Particularly useful when the server has custom installation instructions or setup requirements.
+             * @example https://modelcontextprotocol.io/examples
+             */
+            websiteUrl?: string;
+            /** @description Optional set of sized icons that the client can display in a user interface. Clients that support rendering icons MUST support at least the following MIME types: image/png and image/jpeg (safe, universal compatibility). Clients SHOULD also support: image/svg+xml (scalable but requires security precautions) and image/webp (modern, efficient format). */
+            icons?: components["schemas"]["Icon"][];
             /**
              * Format: uri
              * @description JSON Schema URI for this server.json format
-             * @example https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json
+             * @example https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json
              */
             $schema?: string;
             packages?: components["schemas"]["Package"][];
-            remotes?: components["schemas"]["Remote"][];
-            /** @description Extension metadata using reverse DNS namespacing */
+            remotes?: (components["schemas"]["StreamableHttpTransport"] | components["schemas"]["SseTransport"])[];
+            /** @description Extension metadata using reverse DNS namespacing for vendor-specific data */
             _meta?: {
                 /**
-                 * @description Publisher-specific metadata and build information
+                 * @description Publisher-provided metadata for downstream registries
                  * @example {
                  *       "tool": "publisher-cli",
                  *       "version": "1.2.3",
