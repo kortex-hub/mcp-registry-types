@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import { writeFile } from "fs/promises";
+import { writeFile } from 'node:fs/promises';
 
 export const FILENAME = 'openapi.yaml';
 
