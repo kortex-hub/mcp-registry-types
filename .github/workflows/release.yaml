@@ -15,6 +15,7 @@ env:
 
 permissions:
   contents: read
+  id-token: write  # Required for OIDC
 
 jobs:
 
@@ -155,9 +156,6 @@ jobs:
 
       - name: Execute pnpm
         run: pnpm install
-
-      - name: Set-up npmjs auth token
-        run: printf "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}\n" >> ~/.npmrc
 
       - name: Publish to npmjs
         run: |
