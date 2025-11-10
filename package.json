@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "fetch": "ts-node src/fetchSchema.ts",
+    "fetch": "node --loader ts-node/esm src/fetchSchema.ts",
     "generate:schema": "npx openapi-typescript openapi.yaml -o src/schema.d.ts --export-type",
     "generate": "pnpm run fetch && pnpm run generate:schema"
   },
