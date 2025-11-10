@@ -27,7 +27,7 @@ async function fetchOpenAPISchema() {
         throw new Error(`Failed to fetch OpenAPI document: ${response.statusText}`);
     }
 
-    await writeFile(FILENAME, await response.text());
+    await writeFile(FILENAME, await response.text(), 'utf-8');
 }
 
 fetchOpenAPISchema().catch(console.error);
