@@ -15,14 +15,17 @@
       "types": "./src/index.d.ts",
       "default": "./src/index.d.ts" 
     },
-    "./openapi.yaml": {
-      "default": "./openapi.yaml"
+    "./getOpenAPISchema": {
+      "default": "./src/getSchema.ts"
     }
   },
   "scripts": {
     "fetch": "ts-node src/fetchSchema.ts",
-    "generate:schema": "npx openapi-typescript openapi.yaml -o src/schema.d.ts --export-type",
+    "generate:schema": "npx openapi-typescript resources/openapi.yaml -o src/schema.d.ts --export-type",
     "generate": "pnpm run fetch && pnpm run generate:schema"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1"
   },
   "devDependencies": {
     "@types/node": "^24",

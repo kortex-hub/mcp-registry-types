@@ -16,11 +16,20 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-// Re-export all types from schema.d.ts (auto-generated from OpenAPI spec)
-export * from './schema.d.ts'; 
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+import { parse } from 'yaml';
+import type { OpenAPISchema } from './openAPI';
+import { FILENAME } from './fetchSchema';
 
-// Re-export OpenAPIDocument type and utilities
-export * from './openAPI.d.ts';
-
-// Re-export getOpenAPISchema function
-export { getOpenAPISchema } from './getSchema';
+export async function getOpenAPISchema(): Promise<OpenAPISchema> {
+    const dir = dirname(fileURLToPath(import.meta.url));
+    const schemaPath = resolve(dir, '..', 'resources', FILENAME);
+    try {
+        const content = await readFile(schemaPath, 'utf8');
+        return parse(content);
+    } catch (error: unknown) {
+        throw new Error(`Failed to read schema file: ${error}`);
+    }
+}
