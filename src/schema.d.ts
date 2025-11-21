@@ -18,10 +18,11 @@ export type paths = {
         get: {
             parameters: {
                 query?: {
-                    /** @description Pagination cursor for retrieving next set of results.
+                    /**
+                     * @description Pagination cursor for retrieving next set of results.
                      *
                      *     Cursors are opaque strings returned in the `metadata.nextCursor` field of paginated responses. Always use the exact cursor value returned by the API.
-                     *      */
+                     */
                     cursor?: string;
                     /** @description Maximum number of items to return */
                     limit?: number;
@@ -231,7 +232,6 @@ export type paths = {
          *     **Note**: This endpoint is optional for registry implementations. Read-only registries may not provide this functionality.
          *
          *     Authentication mechanism is registry-specific and may vary between implementations.
-         *
          */
         post: {
             parameters: {
@@ -346,9 +346,10 @@ export type components = {
         ServerList: {
             servers: components["schemas"]["ServerResponse"][];
             metadata?: {
-                /** @description Pagination cursor for retrieving the next page of results.
+                /**
+                 * @description Pagination cursor for retrieving the next page of results.
                  *     Use this exact value in the `cursor` query parameter of your next request. If null or empty, there are no more results.
-                 *      */
+                 */
                 nextCursor?: string;
                 /**
                  * @description Number of items in current page
@@ -417,15 +418,15 @@ export type components = {
              * @description Specifies the input format. Supported values include `filepath`, which should be interpreted as a file on the user's filesystem.
              *
              *     When the input is converted to a string, booleans should be represented by the strings "true" and "false", and numbers should be represented as decimal values.
-             *
              * @default string
              * @enum {string}
              */
             format: "string" | "number" | "boolean" | "filepath";
-            /** @description The default value for the input. If this is not set, the user may be prompted to provide a value. If a value is set, it should not be configurable by end users.
+            /**
+             * @description The default value for the input. If this is not set, the user may be prompted to provide a value. If a value is set, it should not be configurable by end users.
              *
              *     Identifiers wrapped in `{curly_braces}` will be replaced with the corresponding properties from the input `variables` map. If an identifier in braces is not found in `variables`, or if `variables` is not provided, the `{curly_braces}` substring should remain unchanged.
-             *      */
+             */
             value?: string;
             /**
              * @description Indicates whether the input is a secret value (e.g., password, token). If true, clients should handle the value securely.
