@@ -13,7 +13,7 @@
   "exports": {
     ".": {
       "types": "./src/index.d.ts",
-      "default": "./src/index.d.ts" 
+      "default": "./src/index.d.ts"
     },
     "./getOpenAPISchema": {
       "default": "./src/getSchema.ts"
@@ -22,13 +22,16 @@
   "scripts": {
     "fetch": "ts-node src/fetchSchema.ts",
     "generate:schema": "npx openapi-typescript openapi.yaml -o src/schema.d.ts --export-type",
-    "generate": "pnpm run fetch && pnpm run generate:schema"
+    "generate:json": "ts-node src/convertYamlToJson.ts",
+    "generate": "pnpm run fetch && pnpm run generate:schema && pnpm run generate:json"
   },
   "dependencies": {
     "yaml": "^2.8.1"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^24",
+    "js-yaml": "^4.1.1",
     "openapi-typescript": "^7.8.0",
     "ts-node": "^10.9.2"
   },
