@@ -16,20 +16,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
-import { parse } from 'yaml';
-import type { OpenAPISchema } from './openAPI';
-import { FILENAME } from './fetchSchema';
+import Ajv from 'ajv';
+import openapiSchema from './openapi.json' with {type: 'json'};
 
-export async function getOpenAPISchema(): Promise<OpenAPISchema> {
-    const dir = dirname(fileURLToPath(import.meta.url));
-    const schemaPath = resolve(dir, '..', 'resources', FILENAME);
-    try {
-        const content = await readFile(schemaPath, 'utf8');
-        return parse(content);
-    } catch (error: unknown) {
-        throw new Error(`Failed to read schema file: ${error}`);
-    }
-}
+const ajv = new Ajv();
+export const validate = ajv.compile(openapiSchema);
