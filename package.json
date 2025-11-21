@@ -21,7 +21,7 @@
   },
   "scripts": {
     "fetch": "ts-node src/fetchSchema.ts",
-    "generate:schema": "npx openapi-typescript resources/openapi.yaml -o src/schema.d.ts --export-type",
+    "generate:schema": "npx openapi-typescript openapi.yaml -o src/schema.d.ts --export-type",
     "generate": "pnpm run fetch && pnpm run generate:schema"
   },
   "dependencies": {
