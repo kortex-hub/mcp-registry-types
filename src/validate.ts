@@ -19,5 +19,6 @@
 import Ajv from 'ajv';
 import openapiSchema from './openapi.json' with {type: 'json'};
 
-const ajv = new Ajv();
+const ajv = new Ajv({strict: false});
 export const validate = ajv.compile(openapiSchema);
+

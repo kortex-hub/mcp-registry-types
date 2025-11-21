@@ -9,14 +9,10 @@
   },
   "license": "MIT",
   "type": "module",
-  "types": "./src/index.d.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./src/index.d.ts",
-      "default": "./src/index.d.ts"
-    },
-    "./validate": {
-      "default": "./src/validate.ts"
+      "default": "./src/index.ts"
     }
   },
   "scripts": {
