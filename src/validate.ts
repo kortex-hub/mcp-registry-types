@@ -16,9 +16,24 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import Ajv from 'ajv';
+import { Ajv, type ValidateFunction } from 'ajv';
 import openapiSchema from './openapi.json' with {type: 'json'};
 
 const ajv = new Ajv({strict: false});
-export const validate = ajv.compile(openapiSchema);
+
+// Pre-register all OpenAPI schemas once for $ref resolution
+for (const [schemaName, schema] of Object.entries(openapiSchema.components.schemas)) {
+  ajv.addSchema(schema, `#/components/schemas/${schemaName}`);
+}
+
+/**
+ * Creates a validator function for a specific schema component.
+ * The validator automatically handles recursive validation of nested objects via $ref.
+ * 
+ * @param schemaName - Name of the schema in components.schemas (e.g., 'ServerList', 'Server', 'ServerResponse')
+ * @returns AJV validator function that recursively validates the schema and all its nested references
+ */
+export function createValidator(schemaName: string): ValidateFunction {
+  return ajv.compile({ $ref: `#/components/schemas/${schemaName}` });
+}
 

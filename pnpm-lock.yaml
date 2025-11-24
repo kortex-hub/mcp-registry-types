@@ -21,9 +21,6 @@ importers:
       ajv:
         specifier: ^8.17.1
         version: 8.17.1
-      js-yaml:
-        specifier: ^4.1.1
-        version: 4.1.1
       openapi-typescript:
         specifier: ^7.8.0
         version: 7.10.1(typescript@5.9.3)

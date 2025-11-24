@@ -28,7 +28,6 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24",
     "ajv": "^8.17.1",
-    "js-yaml": "^4.1.1",
     "openapi-typescript": "^7.8.0",
     "ts-node": "^10.9.2"
   },
