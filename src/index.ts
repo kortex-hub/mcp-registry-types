@@ -17,10 +17,10 @@
  ***********************************************************************/
 
 // Re-export all types from schema.d.ts (auto-generated from OpenAPI spec)
-export type * from './schema'; 
+export type * from './schema.js'; 
 
 // Re-export OpenAPIDocument type and utilities
-export type * from './openAPI';
+export type * from './openAPI.js';
 
-
-export {validate} from './validate';
+// Export validation functions
+export { createValidator } from './validate.js';
