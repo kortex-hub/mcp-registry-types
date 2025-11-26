@@ -21,7 +21,7 @@ import { writeFile } from "fs/promises";
 export const FILENAME = 'openapi.yaml';
 
 async function fetchOpenAPISchema() {
-    const url = 'https://raw.githubusercontent.com/modelcontextprotocol/registry/refs/tags/v1.2.3/docs/reference/api/openapi.yaml';
+    const url = 'https://raw.githubusercontent.com/modelcontextprotocol/registry/refs/tags/v1.3.10/docs/reference/api/openapi.yaml';
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`Failed to fetch OpenAPI document: ${response.statusText}`);
