@@ -16,11 +16,18 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-// Re-export all types from schema.d.ts (auto-generated from OpenAPI spec)
-export type * from './schema.js'; 
+import { readFileSync, writeFileSync } from 'fs';
+import { parse } from 'yaml';
 
-// Re-export OpenAPIDocument type and utilities
-export type * from './openapi.js';
+const yamlFilePath = 'openapi.yaml';
+const jsonFilePath = 'src/openapi.json';
 
-// Export validation functions
-export { createValidator } from './validate.js';
+try {
+  const yamlContent = readFileSync(yamlFilePath, 'utf8');
+  const jsonData = parse(yamlContent);
+  writeFileSync(jsonFilePath, JSON.stringify(jsonData, null, 2), 'utf8');
+  console.log(`Successfully converted ${yamlFilePath} to ${jsonFilePath}`);
+} catch (error) {
+  console.error(`Error converting YAML to JSON: ${error}`);
+  process.exit(1);
+}
