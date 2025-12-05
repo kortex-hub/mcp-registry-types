@@ -10,12 +10,12 @@ on:
         description: 'Branch to use for the release'
         required: true
         default: main
+
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
 permissions:
   contents: read
-  id-token: write  # Required for OIDC
 
 jobs:
 
@@ -135,30 +135,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           id: ${{ needs.tag.outputs.releaseId}}
-
-  publish:
-    needs: [tag, release]
-    name: Publish
-    runs-on: ubuntu-24.04
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
-        name: Install pnpm
-        with:
-          run_install: false
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: 22
-          cache: 'pnpm'
-
-      - name: Execute pnpm
-        run: pnpm install
-
-      - name: Publish to npmjs
-        run: |
-          echo "Using version ${{ needs.tag.outputs.apiVersion }}"
-          sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"${{ needs.tag.outputs.apiVersion }}\",#g" package.json
-          pnpm publish --provenance --tag latest --no-git-checks --access public

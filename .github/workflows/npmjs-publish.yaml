@@ -1,0 +1,67 @@
+name: npmjs publish
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write  # Required for OIDC
+
+jobs:
+  publish:
+    name: Publish to npmjs
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Determine version and npm tag
+        id: version_info
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            # Tag push: use tag version and publish to "latest"
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"  # Remove 'v' prefix
+            NPM_TAG="latest"
+            echo "Publishing tag version: $VERSION to npm tag: $NPM_TAG"
+          else
+            # Main branch push: create version with git SHA and publish to "next"
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            # Grab the base version from package.json
+            BASE_VERSION=$(jq -r '.version' package.json)
+            # Remove the -next suffix if present
+            STRIPPED_VERSION=${BASE_VERSION%-next}
+            # Create next version with timestamp and SHA
+            VERSION="${STRIPPED_VERSION}-next.$(date +'%Y%m%d%H%M%S').${SHORT_SHA}"
+            NPM_TAG="next"
+            echo "Publishing main branch version: $VERSION to npm tag: $NPM_TAG"
+          fi
+          
+          echo "version=$VERSION" >> ${GITHUB_OUTPUT}
+          echo "npm_tag=$NPM_TAG" >> ${GITHUB_OUTPUT}
+
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Execute pnpm
+        run: pnpm install
+
+      - name: Publish to npmjs
+        run: |
+          echo "Publishing version ${{ steps.version_info.outputs.version }} with npm tag: ${{ steps.version_info.outputs.npm_tag }}"
+          sed -i "s#version\":\ \"\(.*\)\",#version\":\ \"${{ steps.version_info.outputs.version }}\",#g" package.json
+          pnpm publish --provenance --tag ${{ steps.version_info.outputs.npm_tag }} --no-git-checks --access public
